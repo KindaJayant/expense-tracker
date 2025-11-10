@@ -1,4 +1,3 @@
-// src/pages/Dashboard.tsx
 import { useEffect, useMemo, useState } from "react";
 import ExpenseForm from "../components/ExpenseForm";
 import ExpenseTable from "../components/ExpenseTable";
@@ -25,11 +24,19 @@ export default function Dashboard() {
 
   // --- auth → userId
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+    // run async login fetch in inner function (React-safe)
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      setUserId(data.user?.id ?? null);
+    })();
+
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       setUserId(session?.user?.id ?? null);
     });
-    return () => sub.subscription.unsubscribe();
+
+    return () => {
+      if (sub?.subscription) sub.subscription.unsubscribe();
+    };
   }, []);
 
   // --- fetch current month from cloud (source of truth)
@@ -57,7 +64,12 @@ export default function Dashboard() {
       .channel(`exp-realtime-${userId}-${filterMonth}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "expenses", filter: `user_id=eq.${userId}` },
+        {
+          event: "*",
+          schema: "public",
+          table: "expenses",
+          filter: `user_id=eq.${userId}`,
+        },
         (payload) => {
           const evt = payload.eventType;
           const row: any = payload.new ?? payload.old;
@@ -65,14 +77,12 @@ export default function Dashboard() {
           if (evt === "INSERT") {
             if (inMonth(row.date, filterMonth)) {
               setExpenses((p) => {
-                // de-dupe if optimistic insert already present
                 if (p.some((x) => x.id === row.id)) return p;
                 return [{ ...row } as Expense, ...p];
               });
             }
           } else if (evt === "UPDATE") {
-            // simplest + safest: refetch (handles month boundary moves)
-            reloadMonth();
+            reloadMonth(); // simple safe refetch
           } else if (evt === "DELETE") {
             setExpenses((p) => p.filter((x) => x.id !== row.id));
           }
@@ -85,15 +95,15 @@ export default function Dashboard() {
     };
   }, [userId, filterMonth]);
 
-  // --- mutations (optimistic)
+  // --- optimistic mutations
   async function add(e: Expense) {
     if (!userId) return;
-    setExpenses((p) => [e, ...p]); // optimistic
+    setExpenses((p) => [e, ...p]);
     try {
       await insertExpense(userId, e);
     } catch {
-      setExpenses((p) => p.filter((x) => x.id !== e.id)); // rollback
-      alert("Failed to save to cloud.");
+      setExpenses((p) => p.filter((x) => x.id !== e.id));
+      alert("❌ Failed to save to cloud.");
     }
   }
 
@@ -105,7 +115,7 @@ export default function Dashboard() {
       await deleteExpense(userId, id);
     } catch {
       setExpenses(prev);
-      alert("Failed to delete from cloud.");
+      alert("❌ Failed to delete from cloud.");
     }
   }
 
@@ -115,36 +125,54 @@ export default function Dashboard() {
   );
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 space-y-6">
-      <div className="flex items-end justify-between gap-3">
-        <h2 className="text-2xl font-bold">Expense Dashboard</h2>
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-textMuted">Month</label>
+    <main className="mx-auto w-full max-w-6xl px-3 sm:px-4 py-6 sm:py-8 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3">
+        <h2 className="text-xl sm:text-2xl font-bold text-center sm:text-left w-full sm:w-auto">
+          Expense Dashboard
+        </h2>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <label className="text-sm text-textMuted hidden sm:block">Month</label>
           <input
             type="month"
             value={filterMonth}
             onChange={(e) => setFilterMonth(e.target.value)}
-            className="input px-3 py-2"
+            className="input w-full sm:w-auto px-3 py-2 text-sm rounded-lg border border-gray-700 bg-gray-900 text-white focus:ring-2 focus:ring-green-400"
           />
         </div>
       </div>
 
-      <SummaryCards expenses={monthItems} />
-
-      {monthItems.length === 0 && !loading && (
-        <div className="card p-4 neon">
-          <p className="text-sm text-textMuted">No entries yet for this month.</p>
-        </div>
-      )}
-
-      <ExpenseForm onAdd={add} />
-
-      <div className="grid lg:grid-cols-2 gap-4">
-        <CategoryPieChart expenses={monthItems} />
-        <TrendLineChart expenses={monthItems} />
+      {/* Summary cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <SummaryCards expenses={monthItems} />
       </div>
 
-      <ExpenseTable items={monthItems} onDelete={del} />
+      {/* Add expense */}
+      <div className="card p-4 sm:p-6 neon">
+        <ExpenseForm onAdd={add} />
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        <div className="card p-4 sm:p-6 neon h-[280px] sm:h-[400px]">
+          <CategoryPieChart expenses={monthItems} />
+        </div>
+        <div className="card p-4 sm:p-6 neon h-[280px] sm:h-[400px]">
+          <TrendLineChart expenses={monthItems} />
+        </div>
+      </div>
+
+      {/* Expense Table */}
+      <div className="card p-3 sm:p-5 overflow-x-auto rounded-xl neon">
+        <ExpenseTable items={monthItems} onDelete={del} />
+      </div>
+
+      {monthItems.length === 0 && !loading && (
+        <div className="card p-4 neon text-center text-sm text-textMuted">
+          No entries yet for this month.
+        </div>
+      )}
     </main>
   );
 }

@@ -24,3 +24,27 @@ html, body, #root { height: 100%; background:#0b1113; }
 }
 /* Make dropdown options readable (Chromium) */
 option { color: #E8F3EF; background-color: #0f1719; }
+/* Mobile-first polish */
+@media (max-width: 640px) {
+  .card {
+    border-radius: 1rem;
+    padding: 1rem;
+  }
+
+  .btn, .btn-accent {
+    width: 100%;
+    text-align: center;
+  }
+
+  input, select, textarea {
+    font-size: 0.9rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  .neon {
+    box-shadow: 0 0 15px rgba(44,194,149,.08);
+  }
+}
