@@ -2,127 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-/* General theme setup */
-:root {
-  color-scheme: dark;
+/* Base theme */
+:root { color-scheme: dark; }
+html, body, #root { height: 100%; background:#0b1113; color:#E8F3EF; }
+* { scrollbar-width: thin; scrollbar-color: #1f2a2e transparent; }
+
+/* Custom components/utilities (won't be purged) */
+@layer components {
+  .card { @apply rounded-2xl bg-card/70 border border-white/5 shadow-soft backdrop-blur; }
+  .neon { box-shadow:
+      0 0 0 1px rgba(44,194,149,.25),
+      0 0 30px rgba(44,194,149,.12) inset,
+      0 0 40px rgba(44,194,149,.10);
+  }
+
+  .btn { @apply px-5 py-3 rounded-xl font-semibold transition; }
+  .btn-accent { @apply btn text-black bg-accent shadow-glow hover:brightness-95 active:scale-95; }
+  .btn-ghost  { @apply btn border border-white/10 hover:border-white/20 text-white; }
+
+  .input {
+    @apply w-full bg-black/20 border border-white/10 rounded-xl
+           text-white placeholder:text-textMuted/60
+           focus:border-accent/40 focus:ring-2 focus:ring-accent/30 transition;
+  }
+
+  /* Card default padding */
+  .card { @apply p-4 sm:p-6; }
 }
 
-html, body, #root {
-  height: 100%;
-  background: #0b1113;
-  color: #e8f3ef;
-  font-family: 'Inter', sans-serif;
-  scroll-behavior: smooth;
+@layer utilities {
+  .page-gap { @apply space-y-6 sm:space-y-8; }
+  .grid-gap { @apply gap-4 sm:gap-6; }
 }
 
-/* Scrollbar styling */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #1f2a2e transparent;
-}
+/* Dropdown readability (Chromium) */
+option { color:#E8F3EF; background-color:#0f1719; }
 
-/* Glass cards with neon glow */
-.card {
-  @apply rounded-2xl bg-card/70 border border-white/5 shadow-soft backdrop-blur-lg;
-}
-
-.neon {
-  box-shadow:
-    0 0 0 1px rgba(44, 194, 149, 0.25),
-    0 0 30px rgba(44, 194, 149, 0.12) inset,
-    0 0 40px rgba(44, 194, 149, 0.1);
-}
-
-/* Buttons */
-.btn {
-  @apply px-5 py-3 rounded-xl font-semibold transition-all duration-150;
-}
-
-.btn-accent {
-  @apply btn text-black bg-accent shadow-glow hover:brightness-95 active:scale-95;
-}
-
-.btn-ghost {
-  @apply btn border border-white/10 hover:border-white/20 text-white;
-}
-
-/* Inputs and selects */
-.input {
-  @apply w-full bg-black/20 border border-white/10 rounded-xl
-  text-white placeholder:text-textMuted/60
-  focus:border-accent/40 focus:ring-2 focus:ring-accent/30 transition;
-}
-
-option {
-  color: #e8f3ef;
-  background-color: #0f1719;
-}
-
-/* Responsive grid layouts */
-.grid {
-  @apply gap-4;
-}
-
-/* Card padding adjustments */
-.card {
-  @apply p-4 sm:p-6;
-}
-
-/* Mobile-specific tweaks */
+/* Mobile polish */
 @media (max-width: 640px) {
-  main {
-    @apply px-3 py-4 space-y-4;
-  }
-
-  h2 {
-    @apply text-xl;
-  }
-
-  .btn, .input {
-    @apply text-sm;
-  }
-
-  .grid {
-    @apply gap-3;
-  }
-
-  .card {
-    @apply rounded-xl;
-  }
-
-  .neon {
-    box-shadow:
-      0 0 0 1px rgba(44, 194, 149, 0.3),
-      0 0 20px rgba(44, 194, 149, 0.1);
+  .btn, .input { @apply text-sm; }
+  .neon { box-shadow:
+    0 0 0 1px rgba(44, 194, 149, 0.30),
+    0 0 20px rgba(44, 194, 149, 0.10);
   }
 }
 
-/* Table tweaks for smaller screens */
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th, td {
-  @apply px-3 py-2 text-sm text-left border-b border-white/10;
-}
-
+/* Table (mobile-friendly) */
+table { width:100%; border-collapse:collapse; }
+th, td { @apply px-3 py-2 text-sm text-left border-b border-white/10; }
 @media (max-width: 768px) {
-  table, thead, tbody, th, td, tr {
-    display: block;
-  }
-  thead {
-    display: none;
-  }
-  tr {
-    margin-bottom: 1rem;
-    @apply bg-black/20 rounded-xl p-3 border border-white/10;
-  }
-  td {
-    @apply flex justify-between text-sm;
-  }
-  td::before {
-    content: attr(data-label);
-    @apply font-semibold text-textMuted pr-2;
-  }
+  table, thead, tbody, th, td, tr { display:block; }
+  thead { display:none; }
+  tr { @apply bg-black/20 rounded-xl p-3 border border-white/10 mb-4; }
+  td { @apply flex justify-between text-sm; }
+  td::before { content: attr(data-label); @apply font-semibold text-textMuted pr-2; }
 }

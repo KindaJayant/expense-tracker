@@ -125,54 +125,28 @@ export default function Dashboard() {
   );
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-3 sm:px-4 py-6 sm:py-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3">
-        <h2 className="text-xl sm:text-2xl font-bold text-center sm:text-left w-full sm:w-auto">
-          Expense Dashboard
-        </h2>
+    <main className="mx-auto w-full max-w-6xl px-4 md:px-6 lg:px-8 py-8 page-gap">
+  {/* ... */}
+  <div className="grid grid-cols-1 sm:grid-cols-3 grid-gap">
+    <SummaryCards expenses={monthItems} />
+  </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-          <label className="text-sm text-textMuted hidden sm:block">Month</label>
-          <input
-            type="month"
-            value={filterMonth}
-            onChange={(e) => setFilterMonth(e.target.value)}
-            className="input w-full sm:w-auto px-3 py-2 text-sm rounded-lg border border-gray-700 bg-gray-900 text-white focus:ring-2 focus:ring-green-400"
-          />
-        </div>
-      </div>
+  <div className="card neon">
+    <ExpenseForm onAdd={add} />
+  </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        <SummaryCards expenses={monthItems} />
-      </div>
+  <div className="grid grid-cols-1 sm:grid-cols-2 grid-gap">
+    <div className="card neon h-[280px] sm:h-[400px]">
+      <CategoryPieChart expenses={monthItems} />
+    </div>
+    <div className="card neon h-[280px] sm:h-[400px]">
+      <TrendLineChart expenses={monthItems} />
+    </div>
+  </div>
 
-      {/* Add expense */}
-      <div className="card p-4 sm:p-6 neon">
-        <ExpenseForm onAdd={add} />
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-        <div className="card p-4 sm:p-6 neon h-[280px] sm:h-[400px]">
-          <CategoryPieChart expenses={monthItems} />
-        </div>
-        <div className="card p-4 sm:p-6 neon h-[280px] sm:h-[400px]">
-          <TrendLineChart expenses={monthItems} />
-        </div>
-      </div>
-
-      {/* Expense Table */}
-      <div className="card p-3 sm:p-5 overflow-x-auto rounded-xl neon">
-        <ExpenseTable items={monthItems} onDelete={del} />
-      </div>
-
-      {monthItems.length === 0 && !loading && (
-        <div className="card p-4 neon text-center text-sm text-textMuted">
-          No entries yet for this month.
-        </div>
-      )}
-    </main>
+  <div className="card neon overflow-x-auto">
+    <ExpenseTable items={monthItems} onDelete={del} />
+  </div>
+</main>
   );
 }
